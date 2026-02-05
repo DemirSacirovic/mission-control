@@ -26,38 +26,36 @@ function App() {
   const mapRef = useRef<maplibregl.Map | null>(null)
   const markersRef = useRef<maplibregl.Marker[]>([])
   const [markers, setMarkers] = useState<MarkerData[]>([])
-  const [showMarkers, setShowMarkers] = useState(true)  // NOVO: toggle za markere
-  const [currentStyle, setCurrentStyle] = useState<keyof typeof
-  MAP_STYLES>('streets')
+  const [showMarkers, setShowMarkers] = useState(true)
+  const [currentStyle, setCurrentStyle] = useState<keyof typeof MAP_STYLES>('streets')
+  const [units, setUnits] = useState<any[]>([])
 
- const [units, setUnits] = useState<any[]>([])
- // Fetch jedinice sa API-ja
- useEffect(() => {
-   fetch('http://localhost:8000/api/units')
-     .then(res => res.json())
-     .then(data => {
-       setUnits(data.features)
-     })
- }, [])
+  // Fetch jedinice sa API-ja
+  useEffect(() => {
+    fetch('http://localhost:8000/api/units')
+      .then(res => res.json())
+      .then(data => {
+        setUnits(data.features)
+      })
+  }, [])
 
- // Prikaži jedinice na mapi
- useEffect(() => {
-   if (!mapRef.current || units.length === 0) return
+  // Prikaži jedinice na mapi
+  useEffect(() => {
+    if (!mapRef.current || units.length === 0) return
 
-   units.forEach(unit => {
-     const [lng, lat] = unit.geometry.coordinates
-     const { name, status } = unit.properties
+    units.forEach(unit => {
+      const [lng, lat] = unit.geometry.coordinates
+      const { name, status } = unit.properties
 
-     const popup = new maplibregl.Popup({ offset: 25 })
-       .setHTML(`<strong>${name}</strong><br>Status: ${status}`)
+      const popup = new maplibregl.Popup({ offset: 25 })
+        .setHTML(`<strong>${name}</strong><br>Status: ${status}`)
 
-     new maplibregl.Marker({ color: status === 'active' ? '#27ae60' : '#f39c12'
- })
-       .setLngLat([lng, lat])
-       .setPopup(popup)
-       .addTo(mapRef.current!)
-   })
- }, [units])
+      new maplibregl.Marker({ color: status === 'active' ? '#27ae60' : '#f39c12' })
+        .setLngLat([lng, lat])
+        .setPopup(popup)
+        .addTo(mapRef.current!)
+    })
+  }, [units])
 
   useEffect(() => {
     if (!mapContainer.current) return
@@ -94,7 +92,7 @@ function App() {
     return () => map.remove()
   }, [currentStyle])
 
-  // NOVO: Toggle vidljivost markera
+  // Toggle vidljivost markera
   useEffect(() => {
     markersRef.current.forEach(marker => {
       marker.getElement().style.display = showMarkers ? 'block' : 'none'
@@ -159,7 +157,7 @@ function App() {
             </button>
           </div>
 
-          {/* NOVO: Checkbox za toggle markera */}
+          {/* Checkbox za toggle markera */}
           <label style={{
             display: 'flex',
             alignItems: 'center',
@@ -177,9 +175,9 @@ function App() {
             />
             Prikaži markere
           </label>
+
           <div style={{ marginBottom: '15px' }}>
-            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '12px' }}>Stil
-          mape:</p>
+            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '12px' }}>Stil mape:</p>
             {Object.entries(MAP_STYLES).map(([key, style]) => (
               <label key={key} style={{
                 display: 'flex',
@@ -198,6 +196,7 @@ function App() {
               </label>
             ))}
           </div>
+
           {/* Lista markera */}
           {markers.length === 0 ? (
             <p style={{ color: '#7f8c8d', fontSize: '14px' }}>
@@ -227,6 +226,35 @@ function App() {
               ))}
             </ul>
           )}
+
+          {/* API Jedinice */}
+          <h3 style={{ margin: '20px 0 10px 0', borderTop: '1px solid #bdc3c7', paddingTop: '15px' }}>
+            Jedinice ({units.length})
+          </h3>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {units.map((unit) => (
+              <li
+                key={unit.properties.id}
+                onClick={() => flyToMarker(unit.geometry.coordinates[0], unit.geometry.coordinates[1])}
+                style={{
+                  padding: '10px',
+                  marginBottom: '8px',
+                  backgroundColor: 'white',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  borderLeft: `4px solid ${unit.properties.status === 'active' ? '#27ae60' : '#f39c12'}`
+                }}
+              >
+                <strong>{unit.properties.name}</strong>
+                <div style={{ fontSize: '12px', color: '#7f8c8d' }}>
+                  Status: <span style={{ color: unit.properties.status === 'active' ? '#27ae60' : '#f39c12' }}>
+                    {unit.properties.status}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
         </aside>
 
         {/* Mapa */}
