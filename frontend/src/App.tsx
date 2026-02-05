@@ -29,6 +29,36 @@ function App() {
   const [showMarkers, setShowMarkers] = useState(true)  // NOVO: toggle za markere
   const [currentStyle, setCurrentStyle] = useState<keyof typeof
   MAP_STYLES>('streets')
+
+ const [units, setUnits] = useState<any[]>([])
+ // Fetch jedinice sa API-ja
+ useEffect(() => {
+   fetch('http://localhost:8000/api/units')
+     .then(res => res.json())
+     .then(data => {
+       setUnits(data.features)
+     })
+ }, [])
+
+ // Prikaži jedinice na mapi
+ useEffect(() => {
+   if (!mapRef.current || units.length === 0) return
+
+   units.forEach(unit => {
+     const [lng, lat] = unit.geometry.coordinates
+     const { name, status } = unit.properties
+
+     const popup = new maplibregl.Popup({ offset: 25 })
+       .setHTML(`<strong>${name}</strong><br>Status: ${status}`)
+
+     new maplibregl.Marker({ color: status === 'active' ? '#27ae60' : '#f39c12'
+ })
+       .setLngLat([lng, lat])
+       .setPopup(popup)
+       .addTo(mapRef.current!)
+   })
+ }, [units])
+
   useEffect(() => {
     if (!mapContainer.current) return
 
