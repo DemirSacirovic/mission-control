@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
+from pydantic import BaseModel
 
 app = FastAPI(title="Mission Control API")
 
@@ -17,6 +18,45 @@ def get_db():
         database="mission_control",
         user="standard"
     )
+
+class UnitCreate(BaseModel):
+    name: str
+    status: str
+    lng: float
+    lat: float
+
+@app.post("/api/units")
+def create_unit(unit: UnitCreate):
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO units (name, status, location)
+        VALUES (%s, %s, ST_MakePoint(%s, %s))
+        RETURNING id
+    """, (unit.name, unit.status, unit.lng, unit.lat))
+
+    new_id = cur.fetchone()[0]
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return {"id": new_id, "message": "Unit created"}
+
+@app.delete("/api/units/{unit_id}")
+def delete_unit(unit_id: int):
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        DELETE FROM units WHERE id = %s
+    """, (unit_id,))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return {"message": "Unit deleted"}
 
 @app.get("/")
 def root():

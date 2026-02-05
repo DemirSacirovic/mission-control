@@ -227,6 +227,60 @@ function App() {
             </ul>
           )}
 
+          {/* Forma za novu jedinicu */}
+          <div style={{ marginBottom: '15px', padding: '10px', backgroundColor: 'white',
+          borderRadius: '4px' }}>
+            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '12px' }}>Nova
+          jedinica:</p>
+            <input
+              type="text"
+              placeholder="Ime"
+              id="unitName"
+              style={{ width: '100%', padding: '5px', marginBottom: '5px', boxSizing:
+          'border-box' }}
+            />
+            <select id="unitStatus" style={{ width: '100%', padding: '5px', marginBottom:
+          '5px' }}>
+              <option value="active">Active</option>
+              <option value="idle">Idle</option>
+            </select>
+            <button
+              onClick={() => {
+                const name = (document.getElementById('unitName') as
+          HTMLInputElement).value
+                const status = (document.getElementById('unitStatus') as
+          HTMLSelectElement).value
+                const center = mapRef.current?.getCenter()
+                if (!name || !center) return
+
+                fetch('http://localhost:8000/api/units', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ name, status, lng: center.lng, lat: center.lat })
+                })
+                  .then(res => res.json())
+                  .then(() => window.location.reload())
+              }}
+              style={{
+                width: '100%',
+                padding: '8px',
+                backgroundColor: '#27ae60',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Dodaj na centar mape
+            </button>
+          </div>
+
+
+
+
+
+
+
           {/* API Jedinice */}
           <h3 style={{ margin: '20px 0 10px 0', borderTop: '1px solid #bdc3c7', paddingTop: '15px' }}>
             Jedinice ({units.length})
@@ -246,7 +300,29 @@ function App() {
                   borderLeft: `4px solid ${unit.properties.status === 'active' ? '#27ae60' : '#f39c12'}`
                 }}
               >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems:
+              'center' }}>
                 <strong>{unit.properties.name}</strong>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    fetch(`http://localhost:8000/api/units/${unit.properties.id}`, { method:
+              'DELETE' })
+                      .then(() => window.location.reload())
+                  }}
+                  style={{
+                    padding: '2px 6px',
+                    backgroundColor: '#e74c3c',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '3px',
+                    cursor: 'pointer',
+                    fontSize: '10px'
+                  }}
+                >
+                  X
+                </button>
+              </div>
                 <div style={{ fontSize: '12px', color: '#7f8c8d' }}>
                   Status: <span style={{ color: unit.properties.status === 'active' ? '#27ae60' : '#f39c12' }}>
                     {unit.properties.status}
