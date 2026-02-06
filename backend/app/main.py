@@ -15,8 +15,10 @@ app.add_middleware(
 def get_db():
     return psycopg2.connect(
         host="localhost",
+        port=5433,
         database="mission_control",
-        user="standard"
+        user="postgres",
+        password="postgres"
     )
 
 class UnitCreate(BaseModel):
