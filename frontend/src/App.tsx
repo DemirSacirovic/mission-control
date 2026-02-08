@@ -32,7 +32,7 @@ function App() {
 
   // Fetch jedinice sa API-ja
   useEffect(() => {
-    fetch('http://localhost:8000/api/units')
+    fetch('https://mission-control-production-284f.up.railway.app/api/units')
       .then(res => res.json())
       .then(data => {
         setUnits(data.features)
@@ -253,7 +253,7 @@ function App() {
                 const center = mapRef.current?.getCenter()
                 if (!name || !center) return
 
-                fetch('http://localhost:8000/api/units', {
+                fetch('https://mission-control-production-284f.up.railway.app/api/units', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ name, status, lng: center.lng, lat: center.lat })
@@ -306,7 +306,7 @@ function App() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    fetch(`http://localhost:8000/api/units/${unit.properties.id}`, { method:
+                    fetch(`https://mission-control-production-284f.up.railway.app/api/units/${unit.properties.id}`, { method:
               'DELETE' })
                       .then(() => window.location.reload())
                   }}
